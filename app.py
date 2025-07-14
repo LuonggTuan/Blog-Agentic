@@ -17,8 +17,11 @@ class BlogRequest(BaseModel):
 # API
 @app.post("/blogs")
 async def create_blog(request: BlogRequest):
-    topic = request.topic
-
+    #topic = request.topic
+    
+    data = await request.json()
+    topic = data.get("topic","")
+    language = data.get("language","")
     # get the llm object
 
     groqllm = GroqLLM()
@@ -26,7 +29,10 @@ async def create_blog(request: BlogRequest):
 
     # get the graph
     graph_builder = GraphBuilder(llm)
-    if topic:
+    if language and topic:
+        graph = graph_builder.setup_graph(uscase="language")
+        state = graph.invoke({"topic": topic, "current_language": language.lower()})
+    elif topic:
         graph = graph_builder.setup_graph(uscase="topic")
         state = graph.invoke({"topic": topic})
 
